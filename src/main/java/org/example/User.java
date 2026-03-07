@@ -1,6 +1,6 @@
-package main;
+package org.example;
 
-public class User implements Validatable {
+public class User {
 
     public String userName;
     public String userID;
