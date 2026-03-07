@@ -1,11 +1,14 @@
 package org.example;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Movie {
 
     public String movieTitle;
     public String movieID;
     public String[] category;
-    public static Movie[] movies;
+    public static Map<String, ArrayList<Movie>> movies; // <category, movies list>
     
 
     public Movie(String movieTitle, String movieID, String category) {
