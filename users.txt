@@ -1,5 +1,5 @@
 Moamen,12345678M
-horror
+horror,action,drama
 Ali,987654321
 drama,horror
 Ahmed,112233445

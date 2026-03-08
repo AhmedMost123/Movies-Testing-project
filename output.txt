@@ -1,0 +1,13 @@
+For User: Moamen,12345678M
+drama: S126-Sinners,I127-Interstellar,TDK128-The Dark Knight
+horror: TC129-The Conjuring,TN130-The Nun,S132-Sinister
+action: MM123-Mad Max,JW124-John Wick,MI125-Mission Impossible,S126-Sinners
+For User: Ali,987654321
+drama: S126-Sinners,I127-Interstellar,TDK128-The Dark Knight
+horror: TC129-The Conjuring,TN130-The Nun,S132-Sinister
+For User: Ahmed,112233445
+horror: TC129-The Conjuring,TN130-The Nun,S132-Sinister
+action: MM123-Mad Max,JW124-John Wick,MI125-Mission Impossible,S126-Sinners
+For User: Sara,998877665
+drama: S126-Sinners,I127-Interstellar,TDK128-The Dark Knight
+horror: TC129-The Conjuring,TN130-The Nun,S132-Sinister
