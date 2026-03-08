@@ -1,4 +1,5 @@
 package org.example;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,6 +27,8 @@ public class User {
 
         this.uniqueUserID = !UID_SET.contains(userID);
 
+    public String getUsername() {
+        return username;
     }
 
     public Map<String, ArrayList<Movie>> getRecommendations() {
@@ -40,7 +43,6 @@ public class User {
         return recommendations;
     }
 
-    public boolean isValidUserName() {
 
         return Pattern.matches("^[a-zA-Z]( |[a-zA-Z])*$", userName);
     }
@@ -55,4 +57,34 @@ public class User {
         UID_SET.add(userID);
     }
 
+
+    public boolean isUniqueUserId(List<User> allUsers) {
+
+
+        // loop through every user in the list to check that there is no similar User id
+        for (int i = 0; i < allUsers.size(); i++) {
+
+            // get the current user from the list
+            User checkedUser = allUsers.get(i);
+
+            // Condition 2: skip comparing the user with itself
+            // if checkedUser is the exact same object as this user → skip it
+            if (checkedUser == this) {
+                continue;
+            }
+
+            // Condition 3: compare the two userIds
+            String checkedUserId = checkedUser.getUserId();
+
+            // Condition 4: if they match → userId is not unique
+            if (checkedUserId.equals(this.userId)) {
+                return false;
+            }
+        }
+
+        // Condition 5: if no duplicate found so the  userId is unique
+        return true;
+
+    }
+    
 }
