@@ -11,7 +11,7 @@ public class App {
     args[0] => movies file
     args[1] => users file
     */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
         
         if(args.length < 2) {
 
@@ -29,8 +29,8 @@ public class App {
         moviesData = FileManager.readFile(moviesFile);
 
         if(usersData == null || moviesData == null) {
-            System.out.println(String.format("unable to access file %s", 
-            moviesData == null ? moviesData : usersData));
+            System.out.println("unable to access file"); 
+            
             (new Scanner(System.in)).nextLine();
             return;
         }
@@ -88,7 +88,7 @@ public class App {
             buffer.append(String.format("For User: %s,%s\n", user.userName, user.userID));
 
             for(Map.Entry<String, ArrayList<Movie>> suggestion : suggestions.entrySet()) {
-                buffer.append(String.format("%s:%s\n", suggestion.getKey(), 
+                buffer.append(String.format("%s: %s\n", suggestion.getKey(), 
                 String.join(",", suggestion.getValue().stream().map(Movie::toString).toList())));
             }
         }
@@ -97,3 +97,4 @@ public class App {
     }
 
 }
+
