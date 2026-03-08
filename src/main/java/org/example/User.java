@@ -2,7 +2,11 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -15,21 +19,24 @@ public class User {
     
     private static Set<String> UID_SET = new HashSet<String>();
 
-    public User(String userName, String userID, String[] likedCategories) {
+    public User(String userName, String userID, List<String> likedCategories) {
         this.userName = userName;
         this.userID = userID;
-        this.likedCategories = new HashSet<String>(Arrays.asList(likedCategories));
+        this.likedCategories = new HashSet<String>(likedCategories);
 
         this.uniqueUserID = !UID_SET.contains(userID);
 
     }
 
-    public ArrayList<Movie> getRecommendations() {
-
-        ArrayList<Movie> recommendations = new ArrayList<>();
+    public Map<String, ArrayList<Movie>> getRecommendations() {
+        
+        Map<String, ArrayList<Movie>> recommendations = new HashMap<>();
         for(String category : likedCategories) {
-            if(Movie.movies.containsKey(category)) recommendations.addAll(Movie.movies.get(category));
+            if(Movie.movies.containsKey(category)) {
+                recommendations.put(category, Movie.movies.get(category));
+            }
         }
+
         return recommendations;
     }
 

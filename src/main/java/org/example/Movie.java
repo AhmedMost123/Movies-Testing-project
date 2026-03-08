@@ -1,6 +1,7 @@
 package org.example;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ public class Movie {
     public static Map<String, ArrayList<Movie>> movies; // <category, movies list>
     
 
-    public Movie(String movieTitle, String movieID, String[] category) {
+    public Movie(String movieTitle, String movieID, List<String> category) {
 
     }
 
@@ -33,7 +34,13 @@ public class Movie {
     }
 
     public void save() {
+        // save to the movies list
 
+    }
+
+    public String toString() {
+        
+        return movieID+"-"+movieTitle;
     }
     
 }
