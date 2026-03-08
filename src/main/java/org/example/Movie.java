@@ -9,7 +9,7 @@ public class Movie {
 
     public String movieTitle;
     public String movieID;
-    public String[] category;
+    public List<String> category;
     public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); // <category, movies list>
 
     public Movie(String movieTitle, String movieID, List<String> category) {
