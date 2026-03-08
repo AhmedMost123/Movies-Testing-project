@@ -3,6 +3,9 @@ package org.example;
 import java.util.ArrayList;
 import java.util.Map;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 public class Movie {
 
     public String movieTitle;
@@ -11,7 +14,7 @@ public class Movie {
     public static Map<String, ArrayList<Movie>> movies; // <category, movies list>
     
 
-    public Movie(String movieTitle, String movieID, String category) {
+    public Movie(String movieTitle, String movieID, String[] category) {
 
     }
 
@@ -20,8 +23,17 @@ public class Movie {
         return false;
     }
 
+    public boolean isUniqueMovieID() {
+
+        return false;
+    }
+
     public boolean isValidMovieTitle() {
         return false;
+    }
+
+    public void save() {
+
     }
     
 }
