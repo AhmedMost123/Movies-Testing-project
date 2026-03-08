@@ -42,7 +42,7 @@ public class User {
 
     public boolean isValidUserName() {
 
-        return Pattern.matches("^[a-zA-Z](\s|[a-zA-Z])*$", userName);
+        return Pattern.matches("^[a-zA-Z]( |[a-zA-Z])*$", userName);
     }
 
     public boolean isValidUserID() {
