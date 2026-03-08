@@ -1,0 +1,8 @@
+Moamen,12345678M
+horror
+Ali,987654321
+drama,horror
+Ahmed,112233445
+action,horror
+Sara,998877665
+drama,horror

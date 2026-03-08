@@ -1,0 +1,18 @@
+Mad Max,MM001
+action
+John Wick,JW002
+action
+Mission Impossible,MI003
+action
+Sinners,S004
+drama
+Interstellar,I005
+drama
+The Dark Knight,TDK006
+drama
+The Conjuring,TC007
+horror
+The Nun,TN008
+horror
+Sinister,S009
+horror
