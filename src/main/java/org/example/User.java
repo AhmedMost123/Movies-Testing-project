@@ -46,11 +46,8 @@ public class User {
     }
 
     public boolean isValidUserID() {
-        if(!Pattern.matches("^[0-9]([0-9]|[a-zA-Z]){8}$",userID) || !uniqueUserID) return false;
-
-        if(Character.isLetter(userID.charAt(8)) && Character.isLetter((userID.charAt((7))))) return false;
-
-        return true;
+        
+        return Pattern.matches("^[0-9]{8}([0-9]|[a-zA-Z])$",userID) && uniqueUserID;
 
     }
 
