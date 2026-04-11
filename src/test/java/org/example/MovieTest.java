@@ -19,9 +19,35 @@ public class MovieTest {
     }
 
     @Test
-    void testIsUniqueMovieID() {
+void testIsUniqueMovieID() {
 
-    }
+            String[][] testCasesPositive = {
+                {"Man Of Steel", "MOS123"},
+                {"Oppenheimer", "O907"},
+                {"Assassins Creed", "AC864"},
+                {"Vikings", "V701"},
+                {"Tenet", "T012"}
+            };
+
+            for (String[] testData : testCasesPositive) {
+                assertTrue(new Movie(testData[0], testData[1], null).isUniqueMovieID(),
+                    "failed at case: " + Arrays.toString(testData));
+            }
+
+            String[][] testCasesNegative = {
+                {"Man Of Steel", "MOS111"},   
+                {"Oppenheimer", "O100"},      
+                {"Assassins Creed", "AC121"}, 
+                {"Vikings", "V455"},          
+                {"Tenet", "T909"}             
+            };
+
+            for (String[] testData : testCasesNegative) {
+                assertFalse(new Movie(testData[0], testData[1], null).isUniqueMovieID(),
+                    "failed at case: " + Arrays.toString(testData));
+            }
+        }
+    
 
     /*
     ID: Must consist of all capital letters from the movie title followed by three unique digits.
@@ -35,7 +61,7 @@ public class MovieTest {
         String[][] testCasesPositive = {
             {"Man Of Steel", "MOS312"},
             {"Oppenheimer", "O999"},
-            {"Assassins Creed", "CA864"}, // no letter ordering constraint
+            {"Assassins Creed", "AC864"}, // no letter ordering constraint
             {"Vikings", "V007"}
         }; 
 
