@@ -2,6 +2,7 @@ package org.example;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -18,8 +19,22 @@ public class MovieTest {
         }
     }
 
+
     @Test
     void testIsUniqueMovieID() {
+
+        Movie m1 = new Movie("Tenet", "T413", new ArrayList(Arrays.asList("Action", "Thriller"))),
+        m2 = new Movie("Turak", "T413", new ArrayList(Arrays.asList("Action", "Thriller"))),
+        m3 = new Movie("Prince Of Persia", "POP851", new ArrayList(Arrays.asList("Action", "Thriller")));
+
+        m1.save();
+        m3.save();
+
+        assertTrue(m1.isUniqueMovieID());
+        assertTrue(m3.isUniqueMovieID());
+
+        m2.save();
+        assertFalse(m2.isUniqueMovieID());
 
     }
 
@@ -60,6 +75,24 @@ public class MovieTest {
             assertFalse(new Movie(testData[0], testData[1], null).isValidMovieID()
             , "failed at case:" + Arrays.toString(testData));
         }
+
+    }
+
+    /*
+    ID: Must consist of all capital letters from the movie title followed by three unique digits.
+    testing for: 
+      - the three digits must be unique
+    */
+    @Test
+    void testisValidMovieID_uniqueDigits() {
+        Movie m1 = new Movie("Tenet", "T413", new ArrayList(Arrays.asList("Action", "Thriller"))),
+        m2 = new Movie("Prince Of Persia", "POP413", new ArrayList(Arrays.asList("Action", "History")));
+        
+        m1.save();
+        m2.save();
+
+        assertFalse(m1.isValidMovieID());
+        assertFalse(m2.isValidMovieID());
 
     }
 
