@@ -51,7 +51,7 @@ public class FileManager
         } 
         catch (Exception e) 
         {
-            return null;
+            throw new Exception("Error reading file: " + path + " - " + e.getMessage());
         }
 
         return data;

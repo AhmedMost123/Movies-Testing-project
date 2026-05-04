@@ -31,7 +31,7 @@ public class App {
         if(usersData == null || moviesData == null) {
             System.out.println("unable to access file"); 
             
-           
+            (new Scanner(System.in)).nextLine();
             return;
         }
 
