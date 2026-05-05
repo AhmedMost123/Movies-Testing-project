@@ -142,5 +142,99 @@ public class FileManagerTest
         assertEquals("Movie X", data.get(0).get("label"));
         assertEquals("MX123", data.get(0).get("id"));
     }
-  
+    //WHITEBOX TESTING-----------------------------------------
+    @Test
+    void whiteBox_multipleEntriesProcessing() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "Movie One, MO123\nAction\n" +
+                "Movie Two, MT456\nDrama");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        assertEquals(2, data.size());
+    }
+    @Test
+    void whiteBox_missingSecondLineTriggersException() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie Only, MO123\n"); // missing second line
+            FileManager.readFile(TEST_FILE);
+        });
+
+        assertTrue(ex.getMessage().contains("Missing second line"));
+    }
+    @Test
+    void whiteBox_invalidCommaSplitBranch() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            Files.writeString(Path.of(TEST_FILE),
+                    "InvalidFormatLineWithoutComma\nAction");
+            FileManager.readFile(TEST_FILE);
+        });
+
+        assertTrue(ex.getMessage().contains("Line format error"));
+    }
+    @Test
+    void whiteBox_categoryLoopExecution() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "Inception, IN123\nAction,SciFi,Thriller");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        Map<String, Object> entry = data.get(0);
+        List<String> categories = (List<String>) entry.get("category");
+
+        assertEquals(3, categories.size());
+    }
+    @Test
+    void whiteBox_fileNotFoundExceptionPath() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            FileManager.readFile("invalid_path_file.txt");
+        });
+
+        assertTrue(ex.getMessage().contains("Error reading file"));
+    }
+    @Test
+    void whiteBox_writeFileSuccessPath() {
+        assertDoesNotThrow(() -> {
+            FileManager.writeFile(OUTPUT_FILE, "Test Content");
+            assertTrue(Files.exists(Path.of(OUTPUT_FILE)));
+        });
+    }
+    @Test
+    void whiteBox_writeFileExceptionPath() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            FileManager.writeFile("/invalid_path/output.txt", "data");
+        });
+
+        assertTrue(ex.getMessage().contains("Error writing file"));
+    }
+    @Test
+    void whiteBox_singleCategoryLoopBoundary() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "MovieA, MA123\nAction");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        List<String> categories =
+                (List<String>) data.get(0).get("category");
+
+        assertEquals(1, categories.size());
+    }
+    @Test
+    void whiteBox_fullExceptionMessageCheck() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            FileManager.readFile("fake_file_123.txt");
+        });
+
+        assertTrue(ex.getMessage().contains("Error reading file"));
+        assertTrue(ex.getMessage().contains("fake_file_123.txt"));
+    }
+    @Test
+    void whiteBox_writeFilePathValidation() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            FileManager.writeFile("/invalid////path.txt", "data");
+        });
+
+        assertTrue(ex.getMessage().contains("Error writing file"));
+    }
 }
