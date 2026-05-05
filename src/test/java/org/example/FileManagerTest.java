@@ -142,6 +142,79 @@ public class FileManagerTest
         assertEquals("Movie X", data.get(0).get("label"));
         assertEquals("MX123", data.get(0).get("id"));
     }
+    // BLACK BOX TESTING-----------------------------------------
+    @Test
+    void blackBox_validInputStructure() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "The Matrix, TM123\nAction,SciFi");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        assertEquals("The Matrix", data.get(0).get("label"));
+        assertEquals("TM123", data.get(0).get("id"));
+    }
+    @Test
+    void blackBox_invalidFormatMissingComma() {
+        assertThrows(Exception.class, () -> {
+            Files.writeString(Path.of(TEST_FILE),
+                    "The Matrix TM123\nAction,SciFi");
+
+            FileManager.readFile(TEST_FILE);
+        });
+    }
+    @Test
+    void blackBox_missingCategoryLine() {
+        assertThrows(Exception.class, () -> {
+            Files.writeString(Path.of(TEST_FILE),
+                    "The Matrix, TM123\n");
+
+            FileManager.readFile(TEST_FILE);
+        });
+    }
+    @Test
+    void blackBox_inputWithExtraSpaces() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "  Inception  ,  IN456  \n  Action , SciFi ");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        assertEquals("Inception", data.get(0).get("label"));
+        assertEquals("IN456", data.get(0).get("id"));
+    }
+    @Test
+    void blackBox_emptyFileBehavior() throws Exception {
+        Files.writeString(Path.of(TEST_FILE), "");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        assertTrue(data.isEmpty());
+    }
+    @Test
+    void blackBox_multipleEntries() throws Exception {
+        Files.writeString(Path.of(TEST_FILE),
+                "Movie1, M1123\nAction\n" +
+                "Movie2, M2456\nDrama");
+
+        List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+        assertEquals(2, data.size());
+    }
+    @Test
+    void blackBox_writeFileOutputCheck() throws Exception {
+        String content = "Hello Output";
+
+        FileManager.writeFile(OUTPUT_FILE, content);
+
+        String result = Files.readString(Path.of(OUTPUT_FILE));
+
+        assertEquals(content, result);
+    }
+    @Test
+    void blackBox_invalidFilePath() {
+        assertThrows(Exception.class, () -> {
+            FileManager.readFile("non_existing_file.txt");
+        });
+    }
     //WHITEBOX TESTING-----------------------------------------
     @Test
     void whiteBox_multipleEntriesProcessing() throws Exception {
@@ -237,4 +310,5 @@ public class FileManagerTest
 
         assertTrue(ex.getMessage().contains("Error writing file"));
     }
+    
 }
