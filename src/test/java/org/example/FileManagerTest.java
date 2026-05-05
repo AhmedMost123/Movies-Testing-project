@@ -11,11 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+
 public class FileManagerTest 
 {
 
@@ -214,6 +212,17 @@ public class FileManagerTest
         assertThrows(Exception.class, () -> {
             FileManager.readFile("non_existing_file.txt");
         });
+    }
+    @Test
+    void blackBox_emptyCategoryLine() {
+        Exception ex = assertThrows(Exception.class, () -> {
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, ID\n"); // no category line
+
+            FileManager.readFile(TEST_FILE);
+        });
+
+        assertTrue(ex.getMessage().contains("Missing second line"));
     }
     //WHITEBOX TESTING-----------------------------------------
     @Test
