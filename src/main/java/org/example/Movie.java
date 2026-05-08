@@ -2,15 +2,19 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Set;
 public class Movie {
 
     public String movieTitle;
     public String movieID;
     public List<String> category;
-    public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); // <category, movies list>
+    public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); 
+    private static Set<String> USED_IDS = new HashSet<>();
 
     public Movie(String movieTitle, String movieID, List<String> category) {
         this.movieTitle = movieTitle;
@@ -47,7 +51,15 @@ public class Movie {
         char n2 = numbers.charAt(1);
         char n3 = numbers.charAt(2);
 
-        return n1 != n2 && n1 != n3 && n2 != n3;
+        if(n1 == n2 || n1 == n3 || n2 == n3) 
+        { 
+            return false; 
+        } 
+        else if(USED_IDS.contains(movieID)) 
+        { 
+            return false; 
+        } 
+        return true;
     }
 
     public boolean isValidMovieTitle() {
@@ -80,6 +92,7 @@ public class Movie {
             }
 
             movies.get(cat).add(this);
+            USED_IDS.add(movieID);
         }
     }
 
