@@ -10,9 +10,8 @@ public class App {
     /*
     args[0] => movies file
     args[1] => users file
-    args[2] => optional output file
     */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception{
         
         if(args.length < 2) {
 
@@ -26,42 +25,51 @@ public class App {
         usersFile = args[1],
         moviesFile = args[0];
 
-        // Initialize services
-        MovieService movieService = new MovieService();
-        UserService userService = new UserService();
-        userService.setMovieService(movieService);
+        List<Map<String, Object>> usersData = FileManager.readFile(usersFile),
+        moviesData = FileManager.readFile(moviesFile);
 
-        List<Map<String, Object>> usersData, moviesData;
-        try {
-            usersData = FileManager.readFile(usersFile);
-            moviesData = FileManager.readFile(moviesFile);
-        } catch (Exception e) {
+        if(usersData == null || moviesData == null) {
             System.out.println("unable to access file"); 
+            
+            
             return;
         }
 
-        // Process movies using service layer
         for(Map<String, Object> movieData : moviesData) {
             String id = (String) movieData.get("id"),
             title = (String) movieData.get("label");
             List<String> category = (List<String>) movieData.get("category");
 
             Movie movie = new Movie(title, id, category);
-            MovieService.ValidationResult result = movieService.saveMovie(movie);
-            
-            if (!result.isSuccess()) {
-                try {
-                    FileManager.writeFile(outputFile, result.getErrorMessage());
-                } catch (Exception e) {
-                    System.out.println("Error writing to output file: " + e.getMessage());
-                }
+            if(!movie.isValidMovieTitle()) {
+                FileManager.writeFile(outputFile, "Movie Title ERROR: "+title+" is wrong");
                 return;
             }
+
+            if(!movie.isValidMovieID()) {
+                FileManager.writeFile(outputFile, "Movie Id letters ERROR: "+id+" are wrong");
+                return;
+            }
+
+            if(!movie.isUniqueMovieID()) {
+                FileManager.writeFile(outputFile, "Movie Id numbers ERROR: "+id+" aren't unique");
+                return;
+            }
+            if(!movie.isValidCategory()) 
+            { 
+                FileManager.writeFile(outputFile, "Movie Category ERROR"); 
+                return; 
+            }
+            if(movie.hasDuplicateCategories()) 
+            { 
+                FileManager.writeFile(outputFile, "Duplicate Category ERROR"); 
+                return; 
+            }
+            movie.save();
         }
 
         ArrayList<User> users = new ArrayList();
 
-        // Process users using service layer
         for(Map<String, Object> userData : usersData) {
             String id = (String) userData.get("id"),
             name = (String) userData.get("label");
@@ -69,23 +77,24 @@ public class App {
 
             User user = new User(name, id, likedCategories);
             
-            UserService.ValidationResult result = userService.saveUser(user);
-            if (!result.isSuccess()) {
-                try {
-                    FileManager.writeFile(outputFile, result.getErrorMessage());
-                } catch (Exception e) {
-                    System.out.println("Error writing to output file: " + e.getMessage());
-                }
+            if(!user.isValidUserName()) {
+                FileManager.writeFile(outputFile, "Username ERROR: "+name+" is wrong");
                 return;
             }
 
+            if(!user.isValidUserID()) {
+                FileManager.writeFile(outputFile, "User Id ERROR: "+id+" is wrong");
+                return;
+            }
+
+            user.save();
             users.add(user);
         }
     
         StringBuffer buffer = new StringBuffer();
         for(User user : users) {
 
-            Map<String, ArrayList<Movie>> suggestions = userService.getRecommendations(user);
+            Map<String, ArrayList<Movie>> suggestions = user.getRecommendations();
             buffer.append(String.format("For User: %s,%s\n", user.userName, user.userID));
 
             for(Map.Entry<String, ArrayList<Movie>> suggestion : suggestions.entrySet()) {
@@ -94,11 +103,7 @@ public class App {
             }
         }
 
-        try {
-            FileManager.writeFile(outputFile, buffer.toString());
-        } catch (Exception e) {
-            System.out.println("Error writing recommendations to output file: " + e.getMessage());
-        }
+        FileManager.writeFile(outputFile, buffer.toString());
     }
 
 }

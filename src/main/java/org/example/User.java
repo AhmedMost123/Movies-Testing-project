@@ -1,4 +1,5 @@
 package org.example;
+import java.util.List;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,17 +16,16 @@ public class User {
     public String userName;
     public String userID;
     public Set<String> likedCategories;
-    
+    private boolean uniqueUserID;
     
     private static Set<String> UID_SET = new HashSet<String>();
 
     public User(String userName, String userID, List<String> likedCategories) {
         this.userName = userName;
         this.userID = userID;
-        this.likedCategories = likedCategories != null ? 
-            new HashSet<String>(likedCategories) : new HashSet<String>();
+        this.likedCategories = new HashSet<String>(likedCategories);
 
-       
+        this.uniqueUserID = !UID_SET.contains(userID);
     }
     public String getUsername() {
         return userName;
@@ -44,33 +44,13 @@ public class User {
     }
 
     public boolean isValidUserName() {
-
-        // null check
-        if (userName == null) {
-            return false;
-        }
-
-        // reject leading/trailing spaces
-        if (!userName.equals(userName.trim())) {
-            return false;
-        }
-
-        // reject double spaces
-        if (userName.contains("  ")) {
-            return false;
-        }
-
         return Pattern.matches("^[a-zA-Z]( |[a-zA-Z])*$", userName);
     }
+
     public boolean isValidUserID() {
+        
+        return Pattern.matches("^[0-9]{8}([0-9]|[a-zA-Z])$",userID) && uniqueUserID;
 
-        // null check
-        if (userID == null) {
-            return false;
-        }
-
-        return Pattern.matches("^[0-9]{8}([0-9]|[a-zA-Z])$", userID)
-                && !UID_SET.contains(userID);
     }
 
     public void save() {
