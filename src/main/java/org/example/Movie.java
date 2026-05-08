@@ -29,6 +29,19 @@ public class Movie {
         this.movieID = movieID;
         this.category = category;
     }
+    public boolean hasDuplicateCategories() 
+    { 
+        Set<String> set = new HashSet<>(); 
+        for(String cat : category) 
+        { 
+            if(set.contains(cat.toLowerCase())) 
+            { 
+                return true; 
+            } 
+            set.add(cat.toLowerCase()); 
+        } 
+        return false; 
+    }
     public boolean isValidCategory() 
     { 
         for(String cat : category) 

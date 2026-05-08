@@ -1,1 +1,1 @@
-Movie Category ERROR
+Duplicate Category ERROR
