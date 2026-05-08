@@ -1,25 +1,32 @@
 package org.example;
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
-
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
-import org.junit.jupiter.params.provider.Arguments;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 public class UserTest {
 
-    // ─────────────────────────────────────────────
-    // HELPER: reset static UID_SET before each test
-    // so tests don't interfere with each other
-    // ─────────────────────────────────────────────
+    // reset static UID_SET before each test so tests don't interfere with each other
     @BeforeEach
     void resetStaticState() throws Exception {
         Field uidSet = User.class.getDeclaredField("UID_SET");
@@ -31,22 +38,22 @@ public class UserTest {
     }
 
 
-    // helper to quickly build a User
-    private User makeUser(String name, String id) {
+    // helper method to quickly build a user
+    private User makeUser(String name, String id) 
+    {
         return new User(name, id, new ArrayList<>());
     }
 
-    private User makeUser(String name, String id, List<String> categories) {
+    private User makeUser(String name, String id, List<String> categories) 
+    {
         return new User(name, id, categories);
     }
 
 
-    // test isValidUserName() function :
-
+    // test isValidUserName() function
     @Nested
     @DisplayName("1 - isValidUserName()")
     class ValidUserNameTests {
-
         @Test
         @DisplayName("Single word name should be valid")
         void singleWordName() {
@@ -77,7 +84,6 @@ public class UserTest {
             assertFalse(makeUser(" Ahmed", "123456789").isValidUserName());
         }
 
-        
         @Test
         @DisplayName("Name with numbers should be invalid")
         void nameWithNumbers() {
@@ -95,11 +101,21 @@ public class UserTest {
         void emptyName() {
             assertFalse(makeUser("", "123456789").isValidUserName());
         }
+        @Test
+        @DisplayName("Null username should be invalid")
+        void nullUsername() {
+            User user = makeUser(null, "123456789");
+            assertFalse(user.isValidUserName());
+        }
+        @Test
+        @DisplayName("Username with only spaces should be invalid")
+        void usernameOnlySpaces() {
+            assertFalse(makeUser("   ", "123456789").isValidUserName());
+        }
     }
 
 
     // test isValidUserID() function
-
     @Nested
     @DisplayName("2 - isValidUserID()")
     class ValidUserIDTests {
@@ -155,10 +171,19 @@ public class UserTest {
             User user2 = makeUser("Ali", "12345678A"); // same ID
             assertFalse(user2.isValidUserID());
         }
-
-    // ─────────────────────────────────────────────
-    // 3 - getRecommendations() Tests
-    // ─────────────────────────────────────────────
+        @Test
+        @DisplayName("Null user ID should be invalid")
+        void nullUserId() {
+            User user = makeUser("Ahmed", null);
+            assertFalse(user.isValidUserID());
+        }
+        @Test
+        @DisplayName("ID with spaces should be invalid")
+        void idWithSpaces() {
+            assertFalse(makeUser("Ahmed", "1234 5678").isValidUserID());
+        }
+    }
+    // getRecommendations() Tests
     @Nested
     @DisplayName("3 - getRecommendations()")
     class RecommendationTests {
@@ -212,11 +237,50 @@ public class UserTest {
             assertTrue(recommendations.containsKey("action"));
             assertFalse(recommendations.containsKey("nonexistent"));
         }
+        @Test
+        @DisplayName("Multiple movies in same category should all be recommended")
+        void multipleMoviesSameCategory() {
+            Movie m1 = new Movie("Action One", "AO123", Arrays.asList("action"));
+            Movie m2 = new Movie("Action Two", "AT456", Arrays.asList("action"));
+
+            m1.save();
+            m2.save();
+
+            User user = makeUser("Ahmed", "123456789", Arrays.asList("action"));
+
+            Map<String, ArrayList<Movie>> recs = user.getRecommendations();
+
+            assertEquals(2, recs.get("action").size());
+        }
+        @Test
+        @DisplayName("Duplicate categories should not duplicate recommendations")
+        void duplicateCategories() {
+            Movie movie = new Movie("Action", "AC123", Arrays.asList("action"));
+            movie.save();
+
+            User user = makeUser(
+                "Ahmed",
+                "123456789",
+                Arrays.asList("action", "action")
+            );
+
+            Map<String, ArrayList<Movie>> recs = user.getRecommendations();
+
+            assertEquals(1, recs.size());
+        }
+        @Test
+        @DisplayName("Null liked categories should return empty recommendations")
+        void nullLikedCategoriesRecommendations() {
+            User user = new User("Ahmed", "123456789", null);
+
+            Map<String, ArrayList<Movie>> recommendations =
+                    user.getRecommendations();
+
+            assertTrue(recommendations.isEmpty());
+        }
     }
 
-    // ─────────────────────────────────────────────
-    // 4 - save() Tests
-    // ─────────────────────────────────────────────
+    // save() Tests
     @Nested
     @DisplayName("4 - save()")
     class SaveTests {
@@ -253,11 +317,26 @@ public class UserTest {
             user.save(); // Save again
             assertEquals(initialSize, uidSetValue.size());
         }
+        @Test
+        @DisplayName("Saving multiple users should increase UID set size")
+        void multipleUsersIncreaseSetSize() throws Exception {
+
+            Field uidSet = User.class.getDeclaredField("UID_SET");
+            uidSet.setAccessible(true);
+
+            Set<String> uidSetValue = (Set<String>) uidSet.get(null);
+
+            User u1 = makeUser("Ahmed", "123456789");
+            User u2 = makeUser("Ali", "987654321");
+
+            u1.save();
+            u2.save();
+
+            assertEquals(2, uidSetValue.size());
+}
     }
 
-    // ─────────────────────────────────────────────
-    // 5 - isUniqueUserId() Tests
-    // ─────────────────────────────────────────────
+    // isUniqueUserId() Tests
     @Nested
     @DisplayName("5 - isUniqueUserId()")
     class UniqueUserIdTests {
@@ -304,9 +383,7 @@ public class UserTest {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // 6 - Parameterized Tests for Edge Cases
-    // ─────────────────────────────────────────────
+    // Parameterized Tests for Edge Cases
     @Nested
     @DisplayName("6 - Parameterized Edge Case Tests")
     class ParameterizedEdgeCaseTests {
@@ -319,7 +396,7 @@ public class UserTest {
                 Arguments.of("Jean-Claude", false), // Hyphen
                 Arguments.of("O'Connor", false), // Apostrophe
                 Arguments.of("Dr. Strange", false), // Period
-                Arguments.of("Mr Smith", false), // Title with period
+                Arguments.of("Mr Smith", true), // two valid words
                 Arguments.of("John Doe ", false), // Trailing space
                 Arguments.of(" John Doe", false), // Leading space
                 Arguments.of("John  Doe", false), // Double space
@@ -361,9 +438,7 @@ public class UserTest {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // 7 - Exception and Boundary Tests
-    // ─────────────────────────────────────────────
+    // Exception and Boundary Tests
     @Nested
     @DisplayName("7 - Exception and Boundary Tests")
     class ExceptionAndBoundaryTests {
@@ -406,6 +481,47 @@ public class UserTest {
             assertFalse(user.likedCategories.contains("comedy"));
         }
     }
+    @Nested
+    @DisplayName("8 - Boundary Value Analysis")
+    class BoundaryValueTests {
 
+        @Test
+        @DisplayName("Username length boundary")
+        void usernameLengthBoundary() {
+            assertTrue(makeUser("A", "123456789").isValidUserName());
+
+            assertFalse(makeUser("", "123456789").isValidUserName());
+        }
+
+        @Test
+        @DisplayName("User ID exact boundary")
+        void userIdBoundary() {
+            assertTrue(makeUser("Ahmed", "123456789").isValidUserID());
+
+            assertFalse(makeUser("Ahmed", "12345678").isValidUserID());
+
+            assertFalse(makeUser("Ahmed", "1234567890").isValidUserID());
+        }
+        
     }
+    @Nested
+    @DisplayName("9 - State Transition Testing")
+    class StateTransitionTests {
+
+        @Test
+        @DisplayName("User ID becomes non-unique after save")
+        void idStateTransition() {
+            User user1 = makeUser("Ahmed", "123456789");
+
+            assertTrue(user1.isValidUserID());
+
+            user1.save();
+
+            User user2 = makeUser("Ali", "123456789");
+
+            assertFalse(user2.isValidUserID());
+        }
+    }
+
 }
+

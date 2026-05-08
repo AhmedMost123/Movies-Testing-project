@@ -1,15 +1,24 @@
 package org.example;
 
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.io.TempDir;
 
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 public class IntegrationTest {
@@ -27,7 +36,14 @@ public class IntegrationTest {
         usersFile = tempDir.resolve("users.txt");
         outputFile = tempDir.resolve("output.txt");
     }
+    @AfterEach
+    void cleanup() throws Exception {
+        Movie.movies.clear();
 
+        Field uidSet = User.class.getDeclaredField("UID_SET");
+        uidSet.setAccessible(true);
+        ((Set<?>) uidSet.get(null)).clear();
+    }
     // ─────────────────────────────────────────────
     // 1 - FileManager + Movie Integration Tests
     // ─────────────────────────────────────────────
