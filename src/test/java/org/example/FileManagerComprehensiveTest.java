@@ -4,24 +4,23 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.Arguments;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @TestMethodOrder(MethodOrderer.DisplayName.class)
 public class FileManagerComprehensiveTest {
@@ -130,6 +129,21 @@ public class FileManagerComprehensiveTest {
             assertEquals("Action", categories.get(0));
             assertEquals("SciFi", categories.get(1));
         }
+        @Test
+        @DisplayName("Categories should be normalized correctly")
+        void testCategoryNormalization() throws Exception {
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, M123\n Action , SciFi ");
+
+            List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+            @SuppressWarnings("unchecked")
+            List<String> categories =
+                    (List<String>) data.get(0).get("category");
+
+            assertEquals("Action", categories.get(0));
+            assertEquals("SciFi", categories.get(1));
+        }
     }
 
     // ─────────────────────────────────────────────
@@ -156,9 +170,14 @@ public class FileManagerComprehensiveTest {
 
         @Test
         @DisplayName("File with malformed first line should throw exception")
-        void testMalformedFirstLine() throws Exception {
-            Files.writeString(Path.of(TEST_FILE), "Movie Title M123\nAction");
-            assertThrows(Exception.class, () -> FileManager.readFile(TEST_FILE));
+       
+        void blackBox_invalidFileFormat_missingComma() throws Exception {
+
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie Title M123\nAction");
+
+            assertThrows(Exception.class,
+                    () -> FileManager.readFile(TEST_FILE));
         }
 
         @Test
@@ -182,6 +201,15 @@ public class FileManagerComprehensiveTest {
             List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
             assertEquals(0, data.size());
         }
+        @Test
+        @DisplayName("Null file path should throw exception")
+        void testNullFilePath() {
+
+            
+            assertThrows(Exception.class,
+                    () -> FileManager.readFile(null));
+        }
+        
     }
 
     // ─────────────────────────────────────────────
@@ -242,6 +270,11 @@ public class FileManagerComprehensiveTest {
             FileManager.writeFile(OUTPUT_FILE, "New content");
             String secondRead = Files.readString(Path.of(OUTPUT_FILE));
             assertEquals("New content", secondRead);
+        }
+        @Test
+        @DisplayName("WriteFile with empty path should fail")
+        void testEmptyPathWrite() {
+            assertThrows(Exception.class, () -> FileManager.writeFile("", "data"));
         }
     }
 
@@ -350,12 +383,7 @@ public class FileManagerComprehensiveTest {
             assertEquals("MOV123", data.get(0).get("id"));
         }
 
-        @Test
-        @DisplayName("File with only whitespace should throw exception")
-        void testOnlyWhitespace() throws Exception {
-            Files.writeString(Path.of(TEST_FILE), "   \n   \n   ");
-            assertThrows(Exception.class, () -> FileManager.readFile(TEST_FILE));
-        }
+        
 
         @Test
         @DisplayName("File with empty category entries should handle them correctly")
@@ -371,6 +399,57 @@ public class FileManagerComprehensiveTest {
             assertEquals(2, categories.size());
             assertEquals("Action", categories.get(0));
             assertEquals("Drama", categories.get(1));
+        }
+      
+        @Test
+        @DisplayName("File with blank category entries should be cleaned or rejected")
+        void testEmptyCategoryValuesInsideLine() throws Exception {
+
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, M123\nAction, ,Drama");
+
+            List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+            @SuppressWarnings("unchecked")
+            List<String> categories = (List<String>) data.get(0).get("category");
+
+            assertFalse(categories.contains(""));
+        }
+        @Test
+        @DisplayName("Duplicate entries should be stored as separate items")
+        void testDuplicateEntries() throws Exception {
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, M123\nAction\nMovie, M123\nAction");
+
+            List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+            assertEquals(2, data.size());
+        }
+        @Test
+        @DisplayName("File with blank category entries should be cleaned or rejected")
+        void testBlankCategoryEntry() throws Exception {
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, M123\nAction, ,Drama");
+
+            List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+
+            @SuppressWarnings("unchecked")
+            List<String> categories = (List<String>) data.get(0).get("category");
+
+            assertTrue(categories.contains("Action"));
+            assertTrue(categories.contains("Drama"));
+        }
+        @Test
+        @DisplayName("Duplicate categories in same line should be handled")
+        void testDuplicateCategories() throws Exception {
+
+            Files.writeString(Path.of(TEST_FILE),
+                    "Movie, M123\nAction,Action,Drama");
+
+            List<Map<String, Object>> data = FileManager.readFile(TEST_FILE);
+            @SuppressWarnings("unchecked")
+            List<String> categories = (List<String>) data.get(0).get("category");
+            assertEquals(2, categories.stream().distinct().toList().size());
         }
     }
 

@@ -3,7 +3,10 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class FileManager 
 {
@@ -57,9 +60,11 @@ public class FileManager
 
                 //split line 2 whcih is for categories
                 List<String> categories = new ArrayList<>();
-                for (String c : line2.split(",")) 
-                {
-                    categories.add(c.trim());
+                for (String c : line2.split(",")) {
+                    c = c.trim();
+                    if (!c.isEmpty()) {
+                        categories.add(c);
+                    }
                 }
 
                 //place in map
