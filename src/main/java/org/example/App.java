@@ -55,6 +55,11 @@ public class App {
                 FileManager.writeFile(outputFile, "Movie Id numbers ERROR: "+id+" aren't unique");
                 return;
             }
+            if(!movie.isValidCategory()) 
+            { 
+                FileManager.writeFile(outputFile, "Movie Category ERROR"); 
+                return; 
+            }
             movie.save();
         }
 

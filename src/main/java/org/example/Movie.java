@@ -15,11 +15,30 @@ public class Movie {
     public List<String> category;
     public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); 
     private static Set<String> USED_IDS = new HashSet<>();
-
+    private static final Set<String> ALLOWED_CATEGORIES =
+    new HashSet<>(List.of(
+            "horror",
+            "action",
+            "drama",
+            "comedy",
+            "romance",
+            "thriller"
+    ));
     public Movie(String movieTitle, String movieID, List<String> category) {
         this.movieTitle = movieTitle;
         this.movieID = movieID;
         this.category = category;
+    }
+    public boolean isValidCategory() 
+    { 
+        for(String cat : category) 
+        { 
+            if(!ALLOWED_CATEGORIES.contains(cat.toLowerCase())) 
+            { 
+                return false;
+            } 
+        } 
+        return true; 
     }
 
     public boolean isValidMovieID() {

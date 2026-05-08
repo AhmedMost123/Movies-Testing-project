@@ -1,1 +1,1 @@
-Movie Id numbers ERROR: MM123 aren't unique
+Movie Category ERROR
