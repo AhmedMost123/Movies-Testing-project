@@ -2,20 +2,56 @@ package org.example;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Set;
 public class Movie {
 
     public String movieTitle;
     public String movieID;
     public List<String> category;
-    public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); // <category, movies list>
-
+    public static Map<String, ArrayList<Movie>> movies = new HashMap<String, ArrayList<Movie>>(); 
+    private static Set<String> USED_IDS = new HashSet<>();
+    private static final Set<String> ALLOWED_CATEGORIES =
+    new HashSet<>(List.of(
+            "horror",
+            "action",
+            "drama",
+            "comedy",
+            "romance",
+            "thriller"
+    ));
     public Movie(String movieTitle, String movieID, List<String> category) {
         this.movieTitle = movieTitle;
         this.movieID = movieID;
         this.category = category;
+    }
+    public boolean hasDuplicateCategories() 
+    { 
+        Set<String> set = new HashSet<>(); 
+        for(String cat : category) 
+        { 
+            if(set.contains(cat.toLowerCase())) 
+            { 
+                return true; 
+            } 
+            set.add(cat.toLowerCase()); 
+        } 
+        return false; 
+    }
+    public boolean isValidCategory() 
+    { 
+        for(String cat : category) 
+        { 
+            if(!ALLOWED_CATEGORIES.contains(cat.toLowerCase())) 
+            { 
+                return false;
+            } 
+        } 
+        return true; 
     }
 
     public boolean isValidMovieID() {
@@ -36,7 +72,14 @@ public class Movie {
             }
         }
 
-        return letters.equals(capitalLetter.toString());
+        char[] idChars = letters.toCharArray();
+        char[] titleChars = capitalLetter.toString().toCharArray();
+
+        java.util.Arrays.sort(idChars);
+        java.util.Arrays.sort(titleChars);
+
+        return java.util.Arrays.equals(idChars, titleChars);
+        
     }
 
     public boolean isUniqueMovieID() {
@@ -47,7 +90,15 @@ public class Movie {
         char n2 = numbers.charAt(1);
         char n3 = numbers.charAt(2);
 
-        return n1 != n2 && n1 != n3 && n2 != n3;
+        if(n1 == n2 || n1 == n3 || n2 == n3) 
+        { 
+            return false; 
+        } 
+        else if(USED_IDS.contains(movieID)) 
+        { 
+            return false; 
+        } 
+        return true;
     }
 
     public boolean isValidMovieTitle() {
@@ -80,6 +131,7 @@ public class Movie {
             }
 
             movies.get(cat).add(this);
+            USED_IDS.add(movieID);
         }
     }
 
