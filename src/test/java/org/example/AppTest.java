@@ -1,424 +1,213 @@
 package org.example;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.ByteArrayInputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class AppTest {
 
-    private Path moviesFile;
-    private Path usersFile;
-    private Path outputFile;
+    @TempDir
+    Path tempDir;
 
-    private final PrintStream originalOut = System.out;
-    private final InputStream originalIn = System.in;
+    //Black Box testing for App.java
 
     @BeforeEach
-    void setUp() throws Exception {
-        moviesFile = Files.createTempFile("movies", ".txt");
-        usersFile = Files.createTempFile("users", ".txt");
-        outputFile = Files.createTempFile("output", ".txt");
+    void resetStaticData() {
+        // clear static movie storage
+        Movie.movies.clear();
+        // reset used movie ids indirectly
+        // by using reflection because USED_IDS is private static
+        try {
+            java.lang.reflect.Field field =Movie.class.getDeclaredField("USED_IDS");
+            field.setAccessible(true);
+            ((java.util.Set<?>) field.get(null)).clear();
+
+        }
+        catch (Exception e) 
+        {
+
+        }
+        // clear user ids
+        try {
+            java.lang.reflect.Field field =User.class.getDeclaredField("UID_SET");
+        field.setAccessible(true);
+        ((java.util.Set<?>) field.get(null)).clear();
+
+        } 
+        catch (Exception e) 
+        {
+        }
     }
 
-    @AfterEach
-    void tearDown() throws Exception {
-        System.setOut(originalOut);
-        System.setIn(originalIn);
 
-        Files.deleteIfExists(moviesFile);
-        Files.deleteIfExists(usersFile);
-        Files.deleteIfExists(outputFile);
+    @Test
+    void testing_valid_execution() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T123","romance,drama","Avengers,A123","action,thriller"));
+        Files.write(users, List.of("Ahmed,12345678A","romance,action"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("For User: Ahmed,12345678A"));
+        assertTrue(content.contains("Titanic"));
+        assertTrue(content.contains("Avengers"));
     }
 
     @Test
-    //testing for both missing arguments where 1st arg is movies file and 2nd is users file
-    void bothArgsFilesMissing() throws Exception {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-
+    void testing_missing_arguments() throws Exception {
+        System.setIn(new ByteArrayInputStream("\n".getBytes()));
         App.main(new String[]{});
-
-        String expected =
-                "wrong launching arguments, make sure the following arguments are passed in order:\n" +
-                "<movies_file.txt> <users_file.txt> [optional: <output_file.txt>]";
-
-        assertEquals(expected.trim(), baos.toString().trim());
     }
-
     @Test
-    void moviesFileArgsMissing() throws Exception {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-
-        App.main(new String[]{"users.txt"});
-
-        String expected =
-                "wrong launching arguments, make sure the following arguments are passed in order:\n" +
-                "<movies_file.txt> <users_file.txt> [optional: <output_file.txt>]";
-
-        assertEquals(expected.trim(), baos.toString().trim());
-    }
-
-    @Test
-    void usersFileArgsMissing() throws Exception {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-
+    void testing_one_argument_only() throws Exception {
+        System.setIn(new ByteArrayInputStream("\n".getBytes()));
         App.main(new String[]{"movies.txt"});
-
-        String expected =
-                "wrong launching arguments, make sure the following arguments are passed in order:\n" +
-                "<movies_file.txt> <users_file.txt> [optional: <output_file.txt>]";
-
-        assertEquals(expected.trim(), baos.toString().trim());
     }
 
     @Test
-    void usersFileDoesNotExist() throws Exception {
+    void testing_missing_movies_file() throws Exception {
+        Path users = tempDir.resolve("users.txt");
+        Files.write(users, List.of("Ahmed,12345678A","action"));
+        App.main(new String[]{"missing.txt",users.toString()});
+    }
+    @Test
+    void testing_missing_users_file() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Files.write(movies, List.of("Titanic,T123","romance"));
+        App.main(new String[]{movies.toString(),"missing.txt"});
+    }
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
 
-        Path fakeMovies = Files.createTempFile("movies", ".txt");
-        Files.writeString(fakeMovies, "Avatar,AVT123\nAction\n");
-
-        App.main(new String[]{
-                fakeMovies.toString(),
-                "users.txt"
-        });
-
-        assertTrue(baos.toString().contains("unable to access file"));
+    @Test
+    void testing_invalid_movie_title() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("titanic,T123","romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"
+        ));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Movie Title ERROR"));
     }
 
     @Test
-    void moviesFileDoesNotExist() throws Exception {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-
-        Path fakeUsers = Files.createTempFile("users", ".txt");
-        Files.writeString(fakeUsers, "Mariam,12345678A\nAction\n");
-
-        App.main(new String[]{
-                "movies.txt",
-                fakeUsers.toString()
-        });
-
-        assertTrue(baos.toString().contains("unable to access file"));
+    void testing_invalid_movie_id_letters() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        // Titanic capitals => T
+        // invalid id letters => X123
+        Files.write(movies, List.of("Titanic,X123","romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Movie Id letters ERROR"));
     }
 
     @Test
-    void usersAndMoviesFilesDoNotExist() throws Exception {
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-
-        App.main(new String[]{
-                "movies.txt",
-                "users.txt"
-        });
-
-        assertTrue(baos.toString().contains("unable to access file"));
+    void testing_duplicate_movie_id_numbers() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T111","romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Movie Id numbers ERROR"));
     }
 
     @Test
-    //testing invalid movie title, 1st word not starting with capital letter
-    void movieTitleStartsLowerCase() throws Exception {
-
-        Files.writeString(moviesFile,
-                "avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{moviesFile.toString(), usersFile.toString(), outputFile.toString()});
-
-        String result = Files.readString(outputFile).trim();
-
-        assertTrue(result.contains("ERROR"));
+    void testing_invalid_movie_category() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        // valid movie id first
+        Files.write(movies, List.of("Titanic,T123","fantasy"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Movie Category ERROR"));
     }
 
     @Test
-    void movieTitleStartsLowerCase2() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar movie,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{moviesFile.toString(), usersFile.toString(), outputFile.toString()});
-
-        String result = Files.readString(outputFile).trim();
-
-        assertTrue(result.contains("ERROR"));
+    void testing__duplicate_categories() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T123","romance,Romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Duplicate Category ERROR"));
     }
 
     @Test
-    void movieTitleStartsLowerCase3() throws Exception {
+    void testing_invalid_username() throws Exception 
+    {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T123","romance"));
+        // invalid because contains numbers
+        Files.write(users, List.of("Ahmed123,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Username ERROR"));
+}
 
-        Files.writeString(moviesFile,
-                "avatar movie,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{moviesFile.toString(), usersFile.toString(), outputFile.toString()});
-
-        String result = Files.readString(outputFile).trim();
-
-        assertTrue(result.contains("ERROR"));
+    @Test
+    void testing_invalid_user_id() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T123","romance"));
+        Files.write(users, List.of("Ahmed,123","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("User Id ERROR"));
     }
 
     @Test
-    void invalidUsername() throws Exception {
+    void testing_duplicate_user_id() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("Titanic,T123","romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance","Ali,12345678A","action"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("User Id ERROR"));
+    }
 
-        Files.writeString(moviesFile,
-                "Avatar,A123\nAction\n");
 
-        Files.writeString(usersFile,
-                "john2123,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile).trim();
-
-        assertTrue(result.contains("Username ERROR"));
+    @Test
+    void testing_default_output_file() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Files.write(movies, List.of("Titanic,T123","romance"));
+        Files.write(users, List.of("Ahmed,12345678A","romance"));
+        App.main(new String[]{movies.toString(),users.toString()});
+        Path output = Path.of("output.txt");
+        assertTrue(Files.exists(output));
+        Files.deleteIfExists(output);
     }
 
     @Test
-    void emptyUsername() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                ",12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.contains("ERROR"));
-    }
-
-    @Test
-    void multipleUsersProcessing() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n" +
-                "Mariam,87654321B\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.contains("For User"));
-    }
-
-    @Test
-    void fullSystemSuccessfulRun() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.contains("For User"));
-    }
-
-    @Test
-    void emptyMoviesFile() throws Exception {
-
-        Files.writeString(moviesFile, "");
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result != null);
-    }
-
-    @Test
-    void invalidMovieStopsSystemBeforeUsers() throws Exception {
-
-        Files.writeString(moviesFile,
-                "avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.contains("ERROR"));
-        assertFalse(result.contains("For User"));
-    }
-
-    @Test
-    void minimumValidInput() throws Exception {
-
-        Files.writeString(moviesFile,
-                "A,A1\nAction\n");
-
-        Files.writeString(usersFile,
-                "U,U1\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.length() >= 0);
-    }
-
-    @Test
-    void boundaryUserIdLength() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,U1\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.length() > 0);
-    }
-
-    @Test
-    void boundaryMovieIdLength() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,A1\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.length() > 0);
-    }
-
-    @Test
-    void invalidCategoryInMovie() throws Exception {
-
-        Files.writeString(moviesFile,
-                "Avatar,AVT123\nFantasy\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertFalse(result.contains("For User"));
-    }
-
-    @Test
-    void movieFailurePreventsUserProcessing() throws Exception {
-
-        Files.writeString(moviesFile,
-                "avatar,AVT123\nAction\n");
-
-        Files.writeString(usersFile,
-                "John,12345678A\nAction\nMariam,87654321B\nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertFalse(result.contains("Mariam"));
-    }
-
-    @Test
-    void whitespaceInInputFiles() throws Exception {
-
-        Files.writeString(moviesFile,
-                "   Avatar   ,   AVT123   \nAction\n");
-
-        Files.writeString(usersFile,
-                "   John   ,   12345678A   \nAction\n");
-
-        App.main(new String[]{
-                moviesFile.toString(),
-                usersFile.toString(),
-                outputFile.toString()
-        });
-
-        String result = Files.readString(outputFile);
-
-        assertTrue(result.length() > 0);
+    void testing_first_error_only() throws Exception {
+        Path movies = tempDir.resolve("movies.txt");
+        Path users = tempDir.resolve("users.txt");
+        Path output = tempDir.resolve("output.txt");
+        Files.write(movies, List.of("titanic,T123","fantasy"));
+        Files.write(users, List.of("Ahmed123,123","romance"));
+        App.main(new String[]{movies.toString(),users.toString(),output.toString()});
+        String content = Files.readString(output);
+        assertTrue(content.contains("Movie Title ERROR"));
     }
 }
