@@ -1,7 +1,7 @@
 Mad Max,MM123
 action
-Mad Aoon,MA123
-action,action,action
+Assasin Creed, CA123
+action
 Mission Impossible,MI125
 action
 Sinners,S126
