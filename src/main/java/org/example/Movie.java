@@ -36,8 +36,14 @@ public class Movie {
             }
         }
 
-        return letters.equals(capitalLetter.toString());
-    }
+        char[] idChars = letters.toCharArray();
+        char[] titleChars = capitalLetter.toString().toCharArray();
+
+        java.util.Arrays.sort(idChars);
+        java.util.Arrays.sort(titleChars);
+
+        return java.util.Arrays.equals(idChars, titleChars);
+        }
 
     public boolean isUniqueMovieID() {
 
