@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
-import java.util.Set;
 public class Movie {
 
     public String movieTitle;
@@ -27,13 +25,17 @@ public class Movie {
     public Movie(String movieTitle, String movieID, List<String> category) {
         this.movieTitle = movieTitle;
         this.movieID = movieID;
-        this.category = category;
+        this.category = category != null ? new ArrayList<>(category) : new ArrayList<>();
     }
     public boolean hasDuplicateCategories() 
     { 
+        if (category == null || category.isEmpty()) {
+            return false;
+        }
         Set<String> set = new HashSet<>(); 
         for(String cat : category) 
         { 
+            if (cat == null) continue;
             if(set.contains(cat.toLowerCase())) 
             { 
                 return true; 
@@ -44,9 +46,12 @@ public class Movie {
     }
     public boolean isValidCategory() 
     { 
+        if (category == null || category.isEmpty()) {
+            return true; // Empty categories are considered valid
+        }
         for(String cat : category) 
         { 
-            if(!ALLOWED_CATEGORIES.contains(cat.toLowerCase())) 
+            if (cat == null || !ALLOWED_CATEGORIES.contains(cat.toLowerCase())) 
             { 
                 return false;
             } 
@@ -56,6 +61,7 @@ public class Movie {
 
     public boolean isValidMovieID() {
         if (movieID == null) {return false;}
+        if (movieTitle == null) {return false;}
 
         if (movieID.length() < 4) {return false;}
 
@@ -125,13 +131,21 @@ public class Movie {
     }
 
     public void save() {
+        if (category == null) return;
+        
         for (String cat : category) {
-            if (!movies.containsKey(cat)) {
-                movies.put(cat, new ArrayList<Movie>());
+            if (cat == null || cat.trim().isEmpty()) {
+                continue;
+            }
+            String normalizedCat = cat.toLowerCase().trim();
+            if (!movies.containsKey(normalizedCat)) {
+                movies.put(normalizedCat, new ArrayList<Movie>());
             }
 
-            movies.get(cat).add(this);
-            USED_IDS.add(movieID);
+            movies.get(normalizedCat).add(this);
+            if (movieID != null) {
+                USED_IDS.add(movieID);
+            }
         }
     }
 

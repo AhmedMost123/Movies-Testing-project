@@ -1,5 +1,4 @@
 package org.example;
-import java.util.List;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +22,8 @@ public class User {
     public User(String userName, String userID, List<String> likedCategories) {
         this.userName = userName;
         this.userID = userID;
-        this.likedCategories = new HashSet<String>(likedCategories);
+        this.likedCategories = likedCategories != null ? 
+            new HashSet<String>(likedCategories) : new HashSet<String>();
 
         this.uniqueUserID = !UID_SET.contains(userID);
     }

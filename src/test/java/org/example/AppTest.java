@@ -108,12 +108,16 @@ class AppTest {
         //we will only create movies file, no users file created
         Path fakeMovies = Files.createTempFile("movies", ".txt");
         Files.writeString(fakeMovies,"Avatar,AVT123\nAction\n");
-        assertThrows(Exception.class, () -> {
-            App.main(new String[]{
-                    fakeMovies.toString(),
-                    "users.txt"
-            });
-        }, "Users File Doesnt Exist Test Case Failed");
+        
+        App.main(new String[]{
+                fakeMovies.toString(),
+                "users.txt"
+        });
+        
+        String actual = baos.toString().replace("\r\n", "\n").trim();
+        String expected = "unable to access file";
+        
+        assertEquals(expected, actual, "Users File Doesnt Exist Test Case Failed");
     }
     @Test
   //testing movies file doesnt exist
@@ -127,12 +131,15 @@ class AppTest {
       Path fakeUsers = Files.createTempFile("users", ".txt");
       Files.writeString(fakeUsers, "Mariam,12345678A\nAction\n");
 
-      assertThrows(Exception.class, () -> {
-          App.main(new String[]{
-                  "movies.txt",
-                  fakeUsers.toString()
-          });
-      }, "Users File Doesnt Exist Test Case Failed");
+      App.main(new String[]{
+              "movies.txt",
+              fakeUsers.toString()
+      });
+      
+      String actual = baos.toString().replace("\r\n", "\n").trim();
+      String expected = "unable to access file";
+      
+      assertEquals(expected, actual, "Movies File Doesnt Exist Test Case Failed");
   }
     @Test
     //testing users and movies files both dont exist
@@ -142,12 +149,15 @@ class AppTest {
         System.setOut(new PrintStream(baos));
         System.setIn(new ByteArrayInputStream("\n".getBytes()));
         //we will only create movies file, no users file created
-        assertThrows(Exception.class, () -> {
-            App.main(new String[]{
-                    "movies.txt",
-                    "users.txt"
-            });
-        }, "Users and Movies Files Dont Exist Test Case Failed");
+        App.main(new String[]{
+                "movies.txt",
+                "users.txt"
+        });
+        
+        String actual = baos.toString().replace("\r\n", "\n").trim();
+        String expected = "unable to access file";
+        
+        assertEquals(expected, actual, "Users and Movies Files Dont Exist Test Case Failed");
     }
     
     @Test

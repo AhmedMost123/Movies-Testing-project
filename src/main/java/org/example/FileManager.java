@@ -24,6 +24,19 @@ public class FileManager
                 {
                     throw new Exception("Missing second line for entry: " + line1);
                 }
+                
+                // Check if line2 looks like another movie entry instead of a category line
+                // A movie entry typically has an ID that looks like alphanumeric (letters + numbers)
+                // while category lines contain only words
+                String[] line2Parts = line2.split(",");
+                if (line2Parts.length == 2) {
+                    String potentialId = line2Parts[1].trim();
+                    // Check if the second part looks like an ID (contains at least one digit)
+                    if (potentialId.matches(".*\\d+.*")) {
+                        // This looks like another movie entry, not a category line
+                        throw new Exception("Missing category line for entry: " + line1);
+                    }
+                }
                 //split line 1 at the comma
                 String[] parts = line1.split(",");
                 if (parts.length != 2) 
@@ -33,6 +46,14 @@ public class FileManager
                 //now we extract label and id
                 String label = parts[0].trim();
                 String id = parts[1].trim();
+                
+                // Validate label and id are not empty
+                if (label.isEmpty()) {
+                    throw new Exception("Line format error: " + line1);
+                }
+                if (id.isEmpty()) {
+                    throw new Exception("Line format error: " + line1);
+                }
 
                 //split line 2 whcih is for categories
                 List<String> categories = new ArrayList<>();
@@ -51,7 +72,7 @@ public class FileManager
         } 
         catch (Exception e) 
         {
-            return null;
+            throw new Exception("Error reading file: " + path + " - " + e.getMessage());
         }
 
         return data;
