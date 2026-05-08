@@ -12,7 +12,7 @@ A simple Java program that reads movies and users from text files, validates the
 
 ## Class Diagram
 
-![Class Diagram](class_diagram.png)
+![Class Diagram](resources/class_diagram.png)
 
 ## Input Files
 
